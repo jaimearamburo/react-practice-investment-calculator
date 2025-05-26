@@ -1,34 +1,23 @@
 import * as calcs from "../util/investment.js";
 
 export default function Input({ investmentParameters, ...props }) {
-  const { initialInvestment, 
-    annualInvestment, 
-    expectedReturn, 
-    duration 
-  } = investmentParameters;
+  const durationIsValid = investmentParameters.duration > 0;
+  const annualData = calcs.calculateInvestmentResults(investmentParameters);
 
-  const annualData = calcs.calculateInvestmentResults({
-    initialInvestment: Number(initialInvestment),
-    annualInvestment: Number(annualInvestment),
-    expectedReturn: Number(expectedReturn),
-    duration: Number(duration),
-  });
+  // const enhancedAnnualData = annualData.reduce((acc, yearData, index) => {
+  //   const totalInterest = (acc[index - 1]?.totalInterest || 0) + yearData.interest;
+  //   const totalInvestedCapital =
+  //     investmentParameters.initialInvestment +
+  //     yearData.annualInvestment * (index + 1);
 
-  const enhancedAnnualData = (() => {
-    let totalInterest = 0;
+  //   acc.push({
+  //     ...yearData,
+  //     totalInterest,
+  //     totalInvestedCapital,
+  //   });
 
-    return annualData.map((yearData, index) => {
-      totalInterest += yearData.interest;
-
-      return {
-        ...yearData,
-        totalInterest: totalInterest,
-        totalInvestedCapital: Number(initialInvestment) + (yearData.annualInvestment * (index + 1)),
-      };
-    });
-  })();
-
-  //console.log(enhancedAnnualData);
+  //   return acc;
+  // }, []);
 
   return (
     <>
@@ -43,18 +32,29 @@ export default function Input({ investmentParameters, ...props }) {
           </tr>
         </thead>
         <tbody>
-          {duration < 1 && (<tr>
-            <td style={{textAlign: 'center', color: 'salmon'}} colSpan="5">Please enter a duration greater than 1.</td>
+          {!durationIsValid && (<tr>
+            <td style={{textAlign: 'center', color: 'salmon'}} colSpan="5">Please enter a duration greater than 0.</td>
           </tr>)}
-          {enhancedAnnualData.map((annualResult, index) => (
-            <tr key={index}>
-              <td>{index + 1}</td>
-              <td>{calcs.formatter.format(annualResult.valueEndOfYear)}</td>
-              <td>{calcs.formatter.format(annualResult.interest)}</td>
-              <td>{calcs.formatter.format(annualResult.totalInterest)}</td>
-              <td>{calcs.formatter.format(annualResult.totalInvestedCapital)}</td>
-            </tr>
-          ))}
+          {durationIsValid && annualData.map((annualResult, index) => {
+            const totalInterest = 
+              annualResult.valueEndOfYear -
+              annualResult.annualInvestment * (index + 1) -
+              investmentParameters.initialInvestment;
+
+            const totalInvestedCapital =
+              investmentParameters.initialInvestment +
+              annualResult.annualInvestment * (index + 1);
+            
+            return (
+              <tr key={index}>
+                <td>{index + 1}</td>
+                <td>{calcs.formatter.format(annualResult.valueEndOfYear)}</td>
+                <td>{calcs.formatter.format(annualResult.interest)}</td>
+                <td>{calcs.formatter.format(totalInterest)}</td>
+                <td>{calcs.formatter.format(totalInvestedCapital)}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </>

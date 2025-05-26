@@ -1,4 +1,4 @@
-export default function Input({ label, id, type = "number", value, onChange }) {
+export default function UserInput({ label, id, type = "number", value, onChange, required }) {
   return (
     <>
     <p>
@@ -8,6 +8,7 @@ export default function Input({ label, id, type = "number", value, onChange }) {
         id={id}
         value={value}
         onChange={(e) => onChange(e.target)}
+        required={required ? true : false}
       />
     </p>
     </>
